@@ -10,8 +10,14 @@ import kotlin.time.measureTime
 
 data class FetchResult(val url: String, val statusCode: Int, val elapsedMs: Long)
 
-suspend fun fetchUrl(url: String): FetchResult = withContext(Dispatchers.IO) {
+sealed class FetchOutcome {
+    data class Success(val result: FetchResult) : FetchOutcome()
+    data class Failure(val url: String, val error: Throwable): FetchOutcome()
+}
+
+suspend fun fetchUrl(url: String): FetchOutcome = withContext(Dispatchers.IO) {
     var statusCode = -1
+    var caughtError: Exception? = null
     val duration = measureTime {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "GET"
@@ -19,11 +25,18 @@ suspend fun fetchUrl(url: String): FetchResult = withContext(Dispatchers.IO) {
         connection.readTimeout = 5_000
         try {
             statusCode = connection.responseCode
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            caughtError = e
         } finally {
             connection.disconnect()
         }
     }
-    FetchResult(url, statusCode, duration.inWholeMilliseconds)
+
+    caughtError?.let {
+        FetchOutcome.Failure(url, it)
+    } ?: FetchOutcome.Success(FetchResult(url, statusCode, duration.inWholeMilliseconds))
 }
 
 suspend fun main() = coroutineScope {
@@ -44,10 +57,13 @@ suspend fun main() = coroutineScope {
         }
 
         // await은 나중에 몰아서 — 이미 다 병렬로 돌고 있는 상태
-        val results = deferredResults.awaitAll()
+        val outcomes = deferredResults.awaitAll()
 
-        results.forEach { result ->
-            println("[${result.statusCode}] ${result.url} - ${result.elapsedMs}ms")
+        outcomes.forEach { outcome ->
+            when (outcome) {
+                is FetchOutcome.Success -> println("[${outcome.result.statusCode}] ${outcome.result.url} - ${outcome.result.elapsedMs}ms")
+                is FetchOutcome.Failure -> println("[FAILED] ${outcome.url} - ${outcome.error.message}")
+            }
         }
     }
 
