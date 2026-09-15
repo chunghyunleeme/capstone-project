@@ -9,6 +9,12 @@ plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
 
+    // Enables @Serializable code generation for kotlinx-serialization.
+    alias(libs.plugins.kotlin.serialization)
+
+    // Ktor Gradle plugin: BOM alignment, fat-jar/dev tasks.
+    alias(libs.plugins.ktor)
+
     // Apply the application plugin to add support for building a CLI application in Java.
     application
 }
@@ -31,6 +37,25 @@ dependencies {
     implementation(libs.guava)
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+
+    // Ktor server
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.server.di)
+
+    // application.yaml 파서. 없으면 YAML 설정 파일이 조용히 무시된다.
+    implementation(libs.ktor.server.config.yaml)
+
+    // Exposed + PostgreSQL
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.dao)
+    implementation(libs.postgresql)
+
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.logback.classic)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -42,7 +67,8 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.AppKt"
+    // EngineMain이어야 application.yaml(포트, modules)을 읽어 서버를 띄운다.
+    mainClass = "io.ktor.server.netty.EngineMain"
 }
 
 tasks.named<Test>("test") {

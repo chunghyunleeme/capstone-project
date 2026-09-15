@@ -9,3 +9,6 @@ build
 
 # Ignore IntelliJ IDEA project settings
 .idea
+
+# Ignore Postgres data mounted by compose
+tmp

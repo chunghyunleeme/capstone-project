@@ -1,0 +1,15 @@
+ktor:
+  deployment:
+    port: 8080
+  application:
+    # 모듈 확장 함수를 만들 때마다 "패키지.파일Kt.함수명" 형태로 추가한다.
+    modules:
+      - org.example.DIKt.configureDependencyInjection
+      - org.example.SerializationKt.configureSerialization
+
+storage:
+  # 컨테이너 안에서는 compose가 넘기는 DATABASE_JDBC_URL(host=db)을 쓰고,
+  # 로컬 실행에서는 compose가 열어둔 15432 포트로 붙는다.
+  jdbcURL: "$DATABASE_JDBC_URL:jdbc:postgresql://localhost:15432/ktor_tutorial_db"
+  user: "postgres"
+  password: ""
