@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package io.marqvision.capstone;
+
+import "brand.proto";
+
+message Product {
+  int32 id = 1;
+  int32 brand_id = 2;
+  string name = 3;
+  int32 price = 4;
+}
+
+service ProductService {
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+}
+
+message GetProductRequest {
+  int32 id = 1;
+}
+
+message CreateProductRequest {
+  int32 brand_id = 1;
+  string name = 2;
+  int32 price = 3;
+}

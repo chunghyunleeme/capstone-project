@@ -3,10 +3,13 @@ services:
     build: .
     environment:
       DATABASE_JDBC_URL: "jdbc:postgresql://db:5432/ktor_tutorial_db"
+      REDIS_HOST: redis
     ports:
       - "8080:8080"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
   db:
     image: postgres
@@ -19,4 +22,11 @@ services:
       - "15432:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 1s
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "16379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 1s

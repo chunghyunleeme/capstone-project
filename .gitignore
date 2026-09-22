@@ -12,3 +12,6 @@ build
 
 # Ignore Postgres data mounted by compose
 tmp
+
+# Ignore local server run logs
+server.log

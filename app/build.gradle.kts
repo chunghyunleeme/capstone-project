@@ -25,6 +25,10 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":stub"))
+
+    implementation(libs.grpc.netty)
+
     // Use the Kotlin Test integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
@@ -56,6 +60,13 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback.classic)
+
+    implementation(libs.grpc.services)
+
+    implementation(libs.lettuce.core)
+    // Lettuce의 coroutines API(connection.coroutines())는 내부적으로 Reactive 스트림을
+    // await하므로 이 모듈이 없으면 첫 호출에서 NoClassDefFoundError가 난다.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.11.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

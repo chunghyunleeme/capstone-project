@@ -2,6 +2,8 @@ package org.example
 
 import io.ktor.server.application.Application
 import io.ktor.server.plugins.di.dependencies
+import io.lettuce.core.RedisClient
+import io.lettuce.core.api.StatefulRedisConnection
 import org.example.db.BrandTable
 import org.example.db.ProductTable
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -19,8 +21,14 @@ fun Application.configureDependencyInjection() {
     // ProductTable이 BrandTable을 참조하므로 부모 테이블을 먼저 넘긴다.
     createSchema(database, BrandTable, ProductTable)
 
+    val redisHost = environment.config.propertyOrNull("redis.host")?.getString() ?: "localhost"
+    val redisPort = environment.config.propertyOrNull("redis.port")?.getString()?.toInt() ?: 16379
+    val redisClient = RedisClient.create("redis://$redisHost:$redisPort")
+    val redisConnection = redisClient.connect()
+
     dependencies {
         provide<Database> { database }
+        provide<StatefulRedisConnection<String, String>> { redisConnection }
         provide<BrandRepository> { PostgresBrandRepository() }
         provide<ProductRepository> { PostgresProductRepository() }
     }

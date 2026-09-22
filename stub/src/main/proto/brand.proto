@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package io.marqvision.capstone;
+
+message Brand {
+  int32 id = 1;
+  string name = 2;
+  optional string description = 3;
+}
+
+service BrandService {
+  rpc GetBrand(GetBrandRequest) returns (Brand);
+  rpc CreateBrand(CreateBrandRequest) returns (Brand);
+}
+
+message GetBrandRequest {
+  int32 id = 1;
+}
+
+message CreateBrandRequest {
+  string name = 1;
+  optional string description = 2;
+}
