@@ -46,6 +46,7 @@ suspend fun Application.configureSerialization() {
 
     val brandRepository = dependencies.resolve<BrandRepository>()
     val productRepository = dependencies.resolve<ProductRepository>()
+    val productSearchRepository = dependencies.resolve<ProductSearchRepository>()
 
     routing {
         route("/brands") {
@@ -114,9 +115,10 @@ suspend fun Application.configureSerialization() {
                 val request = call.receive<ProductRequest>()
 
                 when (val result = productRepository.create(request.brandId, request.name, request.price)) {
-                    is ProductCreateResult.Created ->
+                    is ProductCreateResult.Created -> {
+                        productSearchRepository.index(result.product)   // Postgres insert 직후 OpenSearch 동기화
                         call.respond(HttpStatusCode.Created, result.product)
-
+                    }
                     is ProductCreateResult.BrandNotFound ->
                         call.respond(
                             HttpStatusCode.UnprocessableEntity,
@@ -165,6 +167,12 @@ suspend fun Application.configureSerialization() {
                 } else {
                     call.respond(HttpStatusCode.NotFound)
                 }
+            }
+
+            get("/search") {
+                val q = call.request.queryParameters["q"]
+                val brandId = call.request.queryParameters["brandId"]?.toIntOrNull()
+                call.respond(productSearchRepository.search(q, brandId))
             }
         }
     }

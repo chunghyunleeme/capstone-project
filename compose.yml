@@ -4,12 +4,17 @@ services:
     environment:
       DATABASE_JDBC_URL: "jdbc:postgresql://db:5432/ktor_tutorial_db"
       REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      OPENSEARCH_HOST: opensearch
+      OPENSEARCH_PORT: "9200"
     ports:
       - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      opensearch:
         condition: service_healthy
   db:
     image: postgres
@@ -29,4 +34,16 @@ services:
       - "16379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
+      interval: 1s
+  opensearch:
+    image: opensearchproject/opensearch:3.8.0
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Marqvision!Study1
+    ports:
+      - "19200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
       interval: 1s

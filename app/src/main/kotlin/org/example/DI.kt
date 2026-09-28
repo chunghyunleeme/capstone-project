@@ -26,10 +26,17 @@ fun Application.configureDependencyInjection() {
     val redisClient = RedisClient.create("redis://$redisHost:$redisPort")
     val redisConnection = redisClient.connect()
 
+    val openSearchHost = environment.config.propertyOrNull("opensearch.host")?.getString() ?: "localhost"
+    val openSearchPort = environment.config.propertyOrNull("opensearch.port")?.getString()?.toInt() ?: 19200
+    val openSearchClient = createOpenSearchClient(openSearchHost, openSearchPort)
+    ensureProductsIndex(openSearchClient)   // 없으면 생성, 있으면 스킵
+
+
     dependencies {
         provide<Database> { database }
         provide<StatefulRedisConnection<String, String>> { redisConnection }
         provide<BrandRepository> { PostgresBrandRepository() }
         provide<ProductRepository> { PostgresProductRepository() }
+        provide<ProductSearchRepository> { OpenSearchProductSearchRepository(openSearchClient) }
     }
 }

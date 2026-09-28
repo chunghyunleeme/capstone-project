@@ -17,4 +17,8 @@ storage:
 
 redis:
   host: "$REDIS_HOST:localhost"
-  port: 16379
+  port: "$REDIS_PORT:16379"
+
+opensearch:
+  host: "$OPENSEARCH_HOST:localhost"
+  port: "$OPENSEARCH_PORT:19200"
